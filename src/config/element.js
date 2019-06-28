@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import ELEMENT from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
-import 'animate.css'
+import Print from './print'
+
+Vue.use(Print) // 注册
 
 Vue.use(ELEMENT);

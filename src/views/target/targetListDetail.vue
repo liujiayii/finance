@@ -3,7 +3,7 @@
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="closeDialog" fullscreen>
       <el-form :model="formData" :inline="true" label-width="120px">
         <el-form-item label="报销单类型">
-          <el-select v-model="formData.expenseAccountType">
+          <el-select v-model="formData.expenseAccountType" :disabled="Boolean(formData.id)">
             <el-option label="新标续贷报销单" :value="1"></el-option>
             <el-option label="本息报销单" :value="2"></el-option>
           </el-select>
@@ -27,53 +27,53 @@
           </el-select>
         </el-form-item>
         <template v-if="formData.expenseAccountType===1">
-          <el-form-item  v-if="formData['平台服务费+利息']" label="平台服务费+利息">
+          <el-form-item v-if="!formData.id||formData['平台服务费+利息']" label="平台服务费+利息">
             <el-input type="number" v-model="formData['平台服务费+利息']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['点位费']" label="点位费">
+          <el-form-item v-if="!formData.id||formData['点位费']" label="点位费">
             <el-input type="number" v-model="formData['点位费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['房产']" label="房产">
+          <el-form-item v-if="!formData.id||formData['房产']" label="房产">
             <el-input type="number" v-model="formData['房产']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['档案管理']" label="档案管理">
+          <el-form-item v-if="!formData.id||formData['档案管理']" label="档案管理">
             <el-input type="number" v-model="formData['档案管理']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['垫资费']" label="垫资费">
+          <el-form-item v-if="!formData.id||formData['垫资费']" label="垫资费">
             <el-input type="number" v-model="formData['垫资费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['过账费']" label="过账费">
+          <el-form-item v-if="!formData.id||formData['过账费']" label="过账费">
             <el-input type="number" v-model="formData['过账费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['实地费']" label="实地费">
+          <el-form-item v-if="!formData.id||formData['实地费']" label="实地费">
             <el-input type="number" v-model="formData['实地费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['GPS安装']" label="GPS安装">
+          <el-form-item v-if="!formData.id||formData['GPS安装']" label="GPS安装">
             <el-input type="number" v-model="formData['GPS安装']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['停车费']" label="停车费">
+          <el-form-item v-if="!formData.id||formData['停车费']" label="停车费">
             <el-input type="number" v-model="formData['停车费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['进抵费']" label="进抵费">
+          <el-form-item v-if="!formData.id||formData['进抵费']" label="进抵费">
             <el-input type="number" v-model="formData['进抵费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['查档费']" label="查档费">
+          <el-form-item v-if="!formData.id||formData['查档费']" label="查档费">
             <el-input type="number" v-model="formData['查档费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['他项费']" label="他项费">
+          <el-form-item v-if="!formData.id||formData['他项费']" label="他项费">
             <el-input type="number" v-model="formData['他项费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
         </template>
         <template v-if="formData.expenseAccountType===2">
-          <el-form-item v-if="formData['本金']" label="本金">
+          <el-form-item v-if="!formData.id||formData['本金']" label="本金">
             <el-input type="number" v-model="formData['本金']" autocomplete="off"><span
               slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['利息']" label="利息">
+          <el-form-item v-if="!formData.id||formData['利息']" label="利息">
             <el-input type="number" v-model="formData['利息']" autocomplete="off"><span
               slot="suffix">元</span></el-input>
           </el-form-item>
-          <el-form-item v-if="formData['违约金']" label="违约金">
+          <el-form-item v-if="!formData.id||formData['违约金']" label="违约金">
             <el-input type="number" v-model="formData['违约金']" autocomplete="off"><span
               slot="suffix">元</span></el-input>
           </el-form-item>
@@ -101,13 +101,22 @@
         <el-button type="primary" @click="submit('2')">提 交</el-button>
       </div>
     </el-dialog>
+    <div class="top">
+      <el-button type="primary" size="small" round @click="dialogFormVisible=true">新建报销单</el-button>
+      <p>新标标号：{{topDetail.id}} 业务员：{{topDetail.username}} 标类型：{{ topDetail.businessType===1?'新标':'续贷' }}</p>
+    </div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="id" label="报销单ID"></el-table-column>
       <el-table-column prop="expenseAccountType" label="报销单类型">
         <template slot-scope="scope"><span>{{ scope.row.expenseAccountType===1?'新标续贷报销单':'本息报销单'}}</span></template>
       </el-table-column>
+      <el-table-column prop="expenseAccountState" label="报销单状态">
+        <template slot-scope="scope"><span>{{ scope.row.expenseAccountState===1?'草稿':scope.row.expenseAccountState===2?'未审核': scope.row.expenseAccountState===3?'已审核':'已驳回'}}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="expenseAccountMoney" label="报销总金额"></el-table-column>
       <el-table-column prop="dateCreated" label="创建日期" :formatter="formatter"></el-table-column>
+      <el-table-column prop="allottedTime" label="还款期数"></el-table-column>
       <el-table-column prop="printNumber" label="已打印次数"></el-table-column>
       <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">
@@ -117,12 +126,6 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      @current-change="fetch"
-      :current-page="pagination.current"
-      layout="total, prev, pager, next, jumper"
-      :total="pagination.total">
-    </el-pagination>
   </div>
 </template>
 
@@ -130,7 +133,7 @@
   import {formatDate} from '../../config/utils'
 
   export default {
-    name: "targetDraft",
+    name: "targetListDetail",
     data() {
       return {
         tableData: [],
@@ -206,8 +209,8 @@
         console.log(newArr)
         this.$ajax.post(this.formData.id ? '/updateExpenseAccount' : '/insertExpenseAccount', {
           superscriptId: this.$route.query.id,
-          ...this.formData,
           expenseAccountState,
+          ...this.formData,
           ExpenseProjectParticulars: JSON.stringify(newArr)
         }).then((res) => {
           if (res.data.code === 1) {
@@ -216,6 +219,20 @@
             this.fetch(this.pagination.current)
           }
         })
+      },
+      fetch(page) {
+        this.loading = true
+        this.$ajax.post('/listExpenseAccountXXX', {limit: 10, page: page || 1, superscriptId: this.$route.query.id})
+          .then((res) => {
+            if (res.data.code === 1) {
+              const pagination = {...this.pagination};
+              pagination.total = res.data.count
+              pagination.current = page;
+              this.loading = false;
+              this.tableData = res.data.data;
+              this.pagination = pagination;
+            }
+          })
       },
       getTopDetail() {
         this.$ajax.post('/getSuperscript', {id: this.$route.query.id})
@@ -244,25 +261,7 @@
       handleSuccess(response, file, fileList) {
         console.log(fileList)
         this.fileList = fileList
-      },
-      fetch(page) {
-        this.loading = true
-        this.$ajax.post('/listExpenseAccountXX', {limit: 10, page: page || 1, expenseAccountState: 1})
-          .then((res) => {
-            if (res.data.code === 1) {
-              const pagination = {...this.pagination};
-              pagination.total = res.data.count
-              pagination.current = page;
-              this.loading = false;
-              this.tableData = res.data.data;
-              this.pagination = pagination;
-            }
-          })
-      },
-    },
-    mounted() {
-      this.fetch()
-      this.getCompany()
+      }
     },
     computed: {
       totalMoney() {
@@ -274,6 +273,15 @@
         }
         return total
       }
+    },
+    mounted() {
+      this.fetch()
+      this.getTopDetail()
+      this.getCompany()
     }
   }
 </script>
+
+<style scoped>
+
+</style>

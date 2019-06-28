@@ -1,168 +1,184 @@
 <template>
   <div>
-    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible">
-      <el-form :model="dialogForm" :inline="true" label-width="120px">
+    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
+      <el-form :model="formData" :inline="true" label-width="120px">
         <el-form-item label="新标标号">
-          <el-input v-model="dialogForm.name" autocomplete="off"></el-input>
+          <el-input type="number" v-model="formData.newBid" autocomplete="off" :disabled="Boolean(formData.id)"></el-input>
         </el-form-item>
-        <el-form-item label="新标类型">
-          <el-select v-model="dialogForm.region">
-            <el-option label="区域一" value="shanghai"></el-option>
-            <el-option label="区域二" value="beijing"></el-option>
+        <el-form-item label="标类型">
+          <el-select v-model="formData.bidState">
+            <el-option label="新标" :value="1"></el-option>
+            <el-option label="续贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="业务类型">
-          <el-select v-model="dialogForm.region">
-            <el-option label="区域一" value="shanghai"></el-option>
-            <el-option label="区域二" value="beijing"></el-option>
+          <el-select v-model="formData.businessType">
+            <el-option label="惠车贷" :value="1"></el-option>
+            <el-option label="惠房贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="投标人姓名">
-          <el-input v-model="dialogForm.name" autocomplete="off"></el-input>
+          <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="投标金额">
-          <el-input v-model="dialogForm.name" autocomplete="off"></el-input>
+          <el-input type="number" v-model="formData.money" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="贷款期限">
-          <el-select v-model="dialogForm.region">
-            <el-option label="区域一" value="shanghai"></el-option>
-            <el-option label="区域二" value="beijing"></el-option>
-          </el-select>
+          <el-input type="number" v-model="formData.lengthOfMaturity" autocomplete="off">
+            <span slot="suffix">个月</span>
+          </el-input>
         </el-form-item>
-        <el-form-item label="投标金额">
-          <el-input type="textarea" v-model="dialogForm.name" autocomplete="off"></el-input>
+        <el-form-item label="备注">
+          <el-input type="textarea" v-model="formData.remark" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
       </div>
     </el-dialog>
     <div class="top">
       <el-form :inline="true" :model="searchForm" size="small">
         <el-form-item label="标类型">
-          <el-select v-model="searchForm.name">
-            <el-option label="一" value="shanghai"></el-option>
-            <el-option label="二" value="beijing"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="标状态值">
-          <el-select v-model="searchForm.name">
-            <el-option label="一" value="shanghai"></el-option>
-            <el-option label="二" value="beijing"></el-option>
+          <el-select v-model="searchForm.bidState">
+            <el-option label="新标" :value="1"></el-option>
+            <el-option label="续贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="业务类型">
-          <el-select v-model="searchForm.name">
-            <el-option label="一" value="shanghai"></el-option>
-            <el-option label="二" value="beijing"></el-option>
+          <el-select v-model="searchForm.businessType">
+            <el-option label="惠车贷" :value="1"></el-option>
+            <el-option label="惠房贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="贷款期限">
-          <el-select v-model="searchForm.name">
-            <el-option label="一" value="shanghai"></el-option>
-            <el-option label="二" value="beijing"></el-option>
-          </el-select>
+          <el-input type="number" v-model="searchForm.lengthOfMaturity"><span slot="suffix">个月</span></el-input>
         </el-form-item>
         <el-form-item label="起始时间">
           <el-date-picker
-            v-model="searchForm.name"
+            v-model="searchForm.time"
             type="daterange"
+            @change="selectTime"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期">
           </el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">查询</el-button>
+          <el-button type="primary" @click="fetch()">查询</el-button>
+          <el-button type="primary" @click="searchForm={}">重置</el-button>
         </el-form-item>
       </el-form>
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">新建</el-button>
     </div>
-    <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="date" label="信标标号"></el-table-column>
-      <el-table-column prop="name" label="业务员姓名"></el-table-column>
-      <el-table-column prop="name" label="标类型"></el-table-column>
-      <el-table-column prop="name" label="业务类型"></el-table-column>
-      <el-table-column prop="name" label="续贷标号"></el-table-column>
+    <el-table :data="tableData" style="width: 100%" :loading="loading">
+      <el-table-column prop="id" label="上标id"></el-table-column>
+      <el-table-column prop="newBid" label="新标标号"></el-table-column>
+      <el-table-column prop="bidState" label="标类型">
+        <template slot-scope="scope"><span>{{ scope.row.bidState===1?'新标':'续贷' }}</span></template>
+      </el-table-column>
+      <el-table-column prop="businessType" label="业务类型">
+        <template slot-scope="scope"><span>{{ scope.row.businessType===1?'惠车贷':'惠房贷' }}</span></template>
+      </el-table-column>
+      <el-table-column prop="oldBid" label="续贷标号"></el-table-column>
       <el-table-column prop="name" label="投标人"></el-table-column>
-      <el-table-column prop="name" label="投标金额"></el-table-column>
-      <el-table-column prop="name" label="贷款期限"></el-table-column>
-      <el-table-column prop="name" label="创建时间"></el-table-column>
-      <el-table-column prop="address" label="备注"></el-table-column>
+      <el-table-column prop="money" label="投标金额"></el-table-column>
+      <el-table-column prop="lengthOfMaturity" label="贷款期限"></el-table-column>
+      <el-table-column prop="dateCreated" label="创建时间" :formatter="formatter"></el-table-column>
+      <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-          <el-button type="text" size="small" @click="dialogFormVisible=true">编辑</el-button>
+          <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
-      @current-change="handleCurrentChange"
-      layout="prev, pager, next, jumper"
-      :total="1000">
+      @current-change="fetch"
+      :current-page="pagination.current"
+      layout="total, prev, pager, next, jumper"
+      :total="pagination.total">
     </el-pagination>
   </div>
 </template>
 
 <script>
+  import {formatDate} from '../../config/utils'
+
   export default {
     name: "targetList",
     data() {
       return {
-        tableData: [
-          {
-            date: '2016-05-02',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1518 弄'
-          }, {
-            date: '2016-05-04',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1517 弄'
-          }, {
-            date: '2016-05-01',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1519 弄'
-          }, {
-            date: '2016-05-03',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1516 弄'
-          }],
+        tableData: [],
         pagination: {},
+        loading: false,
         searchForm: {},
         dialogFormVisible: false,
-        dialogForm: {}
+        formData: {}
       }
     },
     methods: {
+      formatter(row, column, cellValue, index) {
+        return formatDate(new Date(cellValue), 'yyyy-MM-dd')
+      },
       handleClick(row) {
-        console.log(row)
+        this.$router.push({path: "/Target/TargetListDetail", query: {id: row.id}})
       },
-      handleCurrentChange(page) {
-        console.log(page)
+      handleEdit(row) {
+        this.formData = JSON.parse(JSON.stringify(row))
+        this.dialogFormVisible = true
       },
-      onSubmit() {
-
+      selectTime(e) {
+        this.searchForm.startTime = formatDate(e[0], 'yyyy-MM-dd')
+        this.searchForm.endTime = formatDate(e[1], 'yyyy-MM-dd')
       },
-      handleDelete(row){
-        console.log(row)
-        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+      submit() {
+        delete this.formData.dateCreated
+        delete this.formData.bidEndTime
+        this.$ajax.post(this.formData.id ? '/updateSuperscript' : '/insertSuperscript', this.formData)
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.dialogFormVisible = false
+              this.$message.success(res.data.msg);
+              this.fetch(this.pagination.current)
+            }
+          })
+      },
+      fetch(page) {
+        this.loading = true
+        this.$ajax.post('/listSuperscript', {limit: 10, page: page || 1, ...this.searchForm})
+          .then((res) => {
+            if (res.data.code === 1) {
+              const pagination = {...this.pagination};
+              pagination.total = res.data.count
+              pagination.current = page;
+              this.loading = false;
+              this.tableData = res.data.data;
+              this.pagination = pagination;
+            }
+          })
+      },
+      handleDelete(row) {
+        this.$confirm('是否删除?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+          this.$ajax.post('/deleteSuperscript', row)
+            .then((res) => {
+              if (res.data.code === 1) {
+                this.$message.success(res.data.msg);
+                this.fetch(this.pagination.current)
+              }
+            })
         }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
+          this.$message.info('已取消');
         });
       }
+    },
+    mounted() {
+      this.fetch()
     }
   }
 </script>

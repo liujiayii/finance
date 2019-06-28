@@ -1,25 +1,55 @@
 <template>
   <div>
+    <el-alert title="不要轻举妄动，错误的设置项可能会导致系统崩溃" type="warning" show-icon>
+    </el-alert>
     <div class="top">
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">添加</el-button>
     </div>
-    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible">
-      <el-form :model="dialogForm" :inline="true" label-width="120px">
-        <el-form-item label="名称">
-          <el-input v-model="dialogForm.name" autocomplete="off"></el-input>
+    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
+      <el-form :model="formData" :inline="true" label-width="120px">
+        <el-form-item label="权限名称">
+          <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="备注">
-          <el-input type="textarea" v-model="dialogForm.name" autocomplete="off"></el-input>
+        <el-form-item label="父级ID">
+          <el-input v-model="formData.parentId" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input v-model="formData.sorting" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="前端标识">
+          <el-input v-model="formData.url" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="图标">
+          <el-input v-model="formData.icons" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">保 存</el-button>
+        <el-button type="primary" @click="submit">保 存</el-button>
       </div>
     </el-dialog>
-    <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="date" label="名称"></el-table-column>
-      <el-table-column prop="address" label="备注"></el-table-column>
+    <el-table :data="tableData" style="width: 100%" :loading="loading">
+      <el-table-column type="expand">
+        <template slot-scope="props">
+          <el-table :data="props.row.permissions" style="width: 100%" size="small" border>
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="name" label="权限名称"></el-table-column>
+            <el-table-column prop="url" label="前端标识"></el-table-column>
+            <el-table-column prop="sorting" label="排序"></el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
+                <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+      </el-table-column>
+      <el-table-column prop="id" label="ID"></el-table-column>
+      <el-table-column prop="name" label="权限名称"></el-table-column>
+      <el-table-column prop="url" label="前端标识"></el-table-column>
+      <el-table-column prop="icons" label="图标"></el-table-column>
+      <el-table-column prop="sorting" label="排序"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
@@ -27,11 +57,6 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      @current-change="handleCurrentChange"
-      layout="prev, pager, next, jumper"
-      :total="1000">
-    </el-pagination>
   </div>
 </template>
 
@@ -40,58 +65,62 @@
     name: "access",
     data() {
       return {
-        tableData: [
-          {
-            date: '2016-05-02',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1518 弄'
-          }, {
-            date: '2016-05-04',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1517 弄'
-          }, {
-            date: '2016-05-01',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1519 弄'
-          }, {
-            date: '2016-05-03',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1516 弄'
-          }],
+        tableData: [],
         pagination: {},
+        loading: false,
         dialogFormVisible: false,
-        dialogForm: {},
+        formData: {},
       }
     },
     methods: {
       handleClick(row) {
         this.dialogFormVisible = true
-        console.log(row)
+        this.formData = JSON.parse(JSON.stringify(row))
       },
-      handleCurrentChange(page) {
-        console.log(page)
+      submit() {
+        this.$ajax.post(this.formData.id ? '/upPermission' : '/addPermission', this.formData)
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.dialogFormVisible = false
+              this.$message.success(res.data.msg);
+              this.fetch(this.pagination.current)
+            }
+          })
       },
-      onSubmit() {
-
+      fetch(page) {
+        this.loading = true
+        this.$ajax.post('/selePermission', {limit: 10, page: page || 1})
+          .then((res) => {
+            if (res.data.code === 1) {
+              const pagination = {...this.pagination};
+              pagination.total = res.data.count
+              pagination.current = page;
+              this.loading = false;
+              this.tableData = res.data.data;
+              this.pagination = pagination;
+            }
+          })
       },
       handleDelete(row) {
-        console.log(row)
-        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        this.$confirm('是否删除?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+          this.$ajax.post('/delPermission', row)
+            .then((res) => {
+              if (res.data.code === 1) {
+                this.$message.success(res.data.msg);
+                this.fetch(this.pagination.current)
+              }
+            })
         }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
+          this.$message.info('已取消');
         });
       }
+    },
+    mounted() {
+      this.fetch()
     }
   }
 </script>

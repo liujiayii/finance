@@ -3,35 +3,40 @@
     <div class="top">
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">添加</el-button>
     </div>
-    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible">
-      <el-form :model="dialogForm" :inline="true" label-width="120px">
+    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
+      <el-form :model="formData" :inline="true" label-width="120px">
         <el-form-item label="名称">
-          <el-input v-model="dialogForm.name" autocomplete="off"></el-input>
+          <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="备注">
-          <el-input type="textarea" v-model="dialogForm.name" autocomplete="off"></el-input>
+          <el-input type="textarea" v-model="formData.remark" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">保 存</el-button>
+        <el-button type="primary" @click="submit">保 存</el-button>
       </div>
     </el-dialog>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogAccess">
-      <el-checkbox-group v-model="checkList">
-        <el-checkbox label="首页"></el-checkbox>
-        <el-checkbox label="财务报告"></el-checkbox>
-        <el-checkbox label="风控报告"></el-checkbox>
-        <el-checkbox label="上标"></el-checkbox>
-      </el-checkbox-group>
+      <div v-for="item of accessList" :key="item.id">
+        <el-divider content-position="left">
+          <el-checkbox-group v-model="checkList.permissionId">
+            <el-checkbox :label="item.id">{{item.name}}</el-checkbox>
+          </el-checkbox-group>
+        </el-divider>
+        <el-checkbox-group v-model="checkList.permissionId">
+          <el-checkbox v-for="item_c of item.permissions" :key="item_c.id" :label="item_c.id">{{item_c.name}}
+          </el-checkbox>
+        </el-checkbox-group>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogAccess = false">取 消</el-button>
-        <el-button type="primary" @click="dialogAccess = false">保 存</el-button>
+        <el-button type="primary" @click="submitAccess">保 存</el-button>
       </div>
     </el-dialog>
-    <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="date" label="名称"></el-table-column>
-      <el-table-column prop="address" label="备注"></el-table-column>
+    <el-table :data="tableData" style="width: 100%" :loading="loading">
+      <el-table-column prop="name" label="名称"></el-table-column>
+      <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
@@ -41,9 +46,10 @@
       </el-table-column>
     </el-table>
     <el-pagination
-      @current-change="handleCurrentChange"
-      layout="prev, pager, next, jumper"
-      :total="1000">
+      @current-change="fetch"
+      :current-page="pagination.current"
+      layout="total, prev, pager, next, jumper"
+      :total="pagination.total">
     </el-pagination>
   </div>
 </template>
@@ -53,63 +59,95 @@
     name: "role",
     data() {
       return {
-        tableData: [
-          {
-            date: '2016-05-02',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1518 弄'
-          }, {
-            date: '2016-05-04',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1517 弄'
-          }, {
-            date: '2016-05-01',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1519 弄'
-          }, {
-            date: '2016-05-03',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1516 弄'
-          }],
+        tableData: [],
         pagination: {},
+        loading: false,
         dialogFormVisible: false,
-        dialogForm: {},
+        formData: {},
         dialogAccess: false,
-        checkList:[]
+        checkList: {},
+        accessList: []
       }
     },
     methods: {
       handleClick(row) {
         this.dialogFormVisible = true
-        console.log(row)
+        this.formData = JSON.parse(JSON.stringify(row))
       },
       handleAccess(row) {
+        if (this.accessList.length === 0) {
+          this.getAllAccess()
+        }
+        this.$ajax.post('/seleuser', {id: row.id})
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.checkList = {roleId: row.id, permissionId: res.data.data}
+            }
+          })
         this.dialogAccess = true
       },
-      handleCurrentChange(page) {
-        console.log(page)
+      submit() {
+        this.$ajax.post(this.formData.id ? '/updateRole' : '/addRole', this.formData)
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.dialogFormVisible = false
+              this.$message.success(res.data.msg);
+              this.fetch(this.pagination.current)
+            }
+          })
       },
-      onSubmit() {
-
+      submitAccess() {
+        this.checkList.permissionId = this.checkList.permissionId.join(',')
+        this.$ajax.post('/addRolePermissionRelationship', this.checkList)
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.dialogAccess = false
+              this.$message.success(res.data.msg)
+            }
+          })
+      },
+      fetch(page) {
+        this.loading = true
+        this.$ajax.post('/listRole', {limit: 10, page: page || 1})
+          .then((res) => {
+            if (res.data.code === 1) {
+              const pagination = {...this.pagination};
+              pagination.total = res.data.count
+              pagination.current = page;
+              this.loading = false;
+              this.tableData = res.data.data;
+              this.pagination = pagination;
+            }
+          })
       },
       handleDelete(row) {
-        console.log(row)
-        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        this.$confirm('是否删除?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+          this.$ajax.post('/delRole', {roleId: row.id})
+            .then((res) => {
+              if (res.data.code === 1) {
+                this.$message.success(res.data.msg);
+                this.fetch(this.pagination.current)
+              }
+            })
         }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
+          this.$message.info('已取消');
         });
+      },
+      getAllAccess() {
+        this.$ajax.post('/selePermission', {page: 1, limit: 100})
+          .then((res) => {
+            if (res.data.code === 1) {
+              this.accessList = res.data.data
+            }
+          })
       }
+    },
+    mounted() {
+      this.fetch()
     }
   }
 </script>
