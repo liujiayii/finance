@@ -11,7 +11,8 @@
           </el-form-item>
           <template v-if="formData.expenseAccountType===2">
             <el-form-item label="还款期数">
-              <el-input  type="number" v-model="formData.allottedTime" autocomplete="off" readonly><span slot="suffix">个月</span>
+              <el-input type="number" v-model="formData.allottedTime" autocomplete="off" readonly><span
+                slot="suffix">个月</span>
               </el-input>
             </el-form-item>
             <el-form-item label="类别">
@@ -171,10 +172,11 @@
               <span class="vertical">财务主管</span>
               <span class="vertical">{{printData.auditName}}</span>
               <span class="vertical">记&nbsp;&nbsp;&nbsp;&nbsp;账</span>
-              <span class="vertical">{{printData.establishName}}</span>
+              <span class="vertical">{{printData.auditName}}</span>
               <span class="vertical">出&nbsp;&nbsp;&nbsp;&nbsp;纳</span>
               <span class="vertical">审&nbsp;&nbsp;&nbsp;&nbsp;核</span>
               <span class="vertical">经&nbsp;&nbsp;&nbsp;&nbsp;办</span>
+              <span class="vertical">{{printData.establishName}}</span>
             </div>
           </div>
           <div class="RightVertical">
@@ -284,7 +286,9 @@
         this.$confirm('是否删除?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
-          type: 'warning'
+          type: 'warning',
+          inputPattern: /\S/,
+          inputErrorMessage: '请输入内容'
         }).then(() => {
           this.$ajax.post('/deleteExpenseAccount', row)
             .then((res) => {
@@ -383,7 +387,3 @@
     }
   }
 </script>
-
-<style scoped>
-  @import "../../assets/print.css";
-</style>

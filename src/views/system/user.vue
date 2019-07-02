@@ -19,46 +19,46 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetch()">查询</el-button>
-          <el-button type="primary" @click="searchForm={}">重置</el-button>
+          <el-button type="primary" @click="reset()">重置</el-button>
         </el-form-item>
       </el-form>
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">添加用户</el-button>
     </div>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="登录账户">
-          <el-input v-model="formData.username" autocomplete="off"></el-input>
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px">
+        <el-form-item label="登录账户" prop="username">
+          <el-input v-model="formData.username" autocomplete="off" :disabled="Boolean(formData.id)"></el-input>
         </el-form-item>
-        <el-form-item label="密码" v-if="!formData.id">
+        <el-form-item label="密码" v-if="!formData.id" prop="password">
           <el-input v-model="formData.password" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="账号状态">
+        <el-form-item label="账号状态" prop="state">
           <el-select v-model="formData.state">
             <el-option label="正常" :value="1"></el-option>
             <el-option label="锁定" :value="2"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="角色">
+        <el-form-item label="角色" prop="role_id">
           <el-select v-model="formData.role_id">
             <el-option v-for="item of roleList" :label="item.name" :value="item.id" :key="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="姓名">
+        <el-form-item label="姓名" prop="name">
           <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="formData.phone" autocomplete="off"></el-input>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="formData.phone" autocomplete="off" :maxlength="11"></el-input>
         </el-form-item>
-        <el-form-item label="年龄">
+        <el-form-item label="年龄" prop="age">
           <el-input v-model="formData.age" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="性别">
+        <el-form-item label="性别" prop="sex">
           <el-select v-model="formData.sex">
             <el-option label="女" :value="0"></el-option>
             <el-option label="男" :value="1"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="所属公司">
+        <el-form-item label="所属公司" prop="companyId">
           <el-select v-model="formData.companyId">
             <el-option v-for="item of companyList" :label="item.companyName" :key="item.id"
                        :value="item.id"></el-option>
@@ -70,7 +70,24 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit">提 交</el-button>
+        <el-button type="primary" @click="submit('ruleForm')">提 交</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible2" @closed="formData2={}">
+      <el-form :model="formData2" :rules="rules" ref="ruleForm2" :inline="true" label-width="120px">
+        <el-form-item label="登录账户" prop="username">
+          <el-input v-model="formData2.username" autocomplete="off" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="旧密码" prop="password">
+          <el-input v-model="formData2.password" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码" prop="newpassword">
+          <el-input v-model="formData2.newpassword" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submit2('ruleForm2')">提 交</el-button>
       </div>
     </el-dialog>
     <el-table :data="tableData" style="width: 100%" :loading="loading">
@@ -88,6 +105,7 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
+          <el-button @click="handlePassword(scope.row)" type="text" size="small">密码</el-button>
           <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
         </template>
       </el-table-column>
@@ -111,31 +129,70 @@
         loading: false,
         searchForm: {},
         dialogFormVisible: false,
+        dialogFormVisible2: false,
         formData: {},
+        formData2: {},
         companyList: [],
-        roleList: []
+        roleList: [],
+        rules: {
+          username: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          password: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          newpassword: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          state: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          role_id: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          name: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          phone: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          age: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          sex: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          companyId: [{required: true, message: '请输入内容', trigger: 'blur'}]
+        },
       }
     },
     methods: {
+      reset() {
+        this.searchForm = {}
+        this.fetch()
+      },
       handleClick(row) {
         this.dialogFormVisible = true
         this.formData = JSON.parse(JSON.stringify(row))
-        if (this.roleList.length === 0) {
-          this.getAllRole()
-        }
       },
-      submit() {
-        delete this.formData.createTime
-        delete this.formData.birthday
-        if (this.formData.id) delete this.formData.password
-        this.$ajax.post(this.formData.id ? '/updateusersert' : '/adduser', this.formData)
-          .then((res) => {
-            if (res.data.code === 1) {
-              this.dialogFormVisible = false
-              this.$message.success(res.data.msg);
-              this.fetch(this.pagination.current)
-            }
-          })
+      handlePassword(row) {
+        this.dialogFormVisible2 = true
+        this.formData2 = JSON.parse(JSON.stringify({username: row.username, id: row.id}))
+      },
+      submit2(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            if (this.formData.id) delete this.formData.password
+            this.$ajax.post('/uatepassword', this.formData2)
+              .then((res) => {
+                if (res.data.code === 1) {
+                  this.dialogFormVisible2 = false
+                  this.$message.success(res.data.msg);
+                }
+              })
+            return false;
+          }
+        });
+      },
+      submit(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            delete this.formData.createTime
+            delete this.formData.birthday
+            if (this.formData.id) delete this.formData.password
+            this.$ajax.post(this.formData.id ? '/updateusersert' : '/adduser', this.formData)
+              .then((res) => {
+                if (res.data.code === 1) {
+                  this.dialogFormVisible = false
+                  this.$message.success(res.data.msg);
+                  this.fetch(this.pagination.current)
+                }
+              })
+            return false;
+          }
+        });
       },
       fetch(page) {
         this.loading = true
@@ -197,6 +254,7 @@
     mounted() {
       this.fetch()
       this.getCompany()
+      this.getAllRole()
     }
   }
 </script>

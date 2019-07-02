@@ -2,11 +2,11 @@
   <div>
     <el-dialog :visible.sync="dialogFormVisible" @closed="closeDialog" append-to-body>
       <el-dialog :visible.sync="dialogFormVisible2" @closed="formData2={}" :modal="false">
-        <el-form :model="formData2" :inline="true" label-width="120px">
-          <el-form-item label="项目名称">
+        <el-form :model="formData2" :rules="rules" ref="ruleForm2" :inline="true" label-width="120px">
+          <el-form-item label="项目名称" prop="name">
             <el-input v-model="formData2.name" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="金额">
+          <el-form-item label="金额" prop="money">
             <el-input type="number" v-model="formData2.money" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="摘要">
@@ -14,7 +14,7 @@
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="submitTable2">确 定</el-button>
+          <el-button type="primary" @click="submitTable2('ruleForm2')">确 定</el-button>
         </div>
       </el-dialog>
       <el-button type="primary" @click="dialogFormVisible2=true" size="mini">添加</el-button>
@@ -28,17 +28,17 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="类型">
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px" style="margin-top: 20px">
+        <el-form-item label="类型" prop="type">
           <el-select v-model="formData.type" :disabled="Boolean(formData.id)">
             <el-option label="收入" :value="1"></el-option>
             <el-option label="支出" :value="2"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="报销人姓名">
+        <el-form-item label="报销人姓名" prop="name">
           <el-input v-model="formData.name" autocomplete="off" :disabled="Boolean(formData.id)"></el-input>
         </el-form-item>
-        <el-form-item label="分公司">
+        <el-form-item label="分公司" prop="branchCompanyId">
           <el-select v-model="formData.branchCompanyId">
             <el-option v-for="item of companyList" :label="item.companyName" :value="item.id"
                        :key="item.id"></el-option>
@@ -63,7 +63,7 @@
       <div slot="footer" class="dialog-footer">
         <p>当前总计：{{totalMoney}}元</p>
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit">确 定</el-button>
+        <el-button type="primary" @click="submit('ruleForm')">确 定</el-button>
       </div>
     </el-dialog>
     <div class="top">
@@ -86,7 +86,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetch()">查询</el-button>
-          <el-button type="primary" @click="searchForm={}">重置</el-button>
+          <el-button type="primary" @click="reset()">重置</el-button>
         </el-form-item>
       </el-form>
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">新建收支单</el-button>
@@ -138,13 +138,24 @@
         formData2: {},
         dialogImageUrl: '',
         dialogImageVisible: false,
-        fileList: []
+        fileList: [],
+        rules: {
+          type: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          name: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          branchCompanyId: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          money: [{required: true, message: '请输入内容', trigger: 'blur'}]
+        },
       };
     },
     methods: {
+      reset() {
+        this.searchForm = {}
+        this.fetch()
+      },
       closeDialog() {
         this.formData = {}
         this.fileList = []
+        this.tableData2 = []
       },
       getCompany() {
         this.$ajax.post('/t_branch_company/selectt_branch_company', {page: 1, limit: 100})
@@ -175,25 +186,30 @@
         this.searchForm.startTime = formatDate(e[0], 'yyyy-MM-dd')
         this.searchForm.endTime = formatDate(e[1], 'yyyy-MM-dd')
       },
-      submit() {
-        delete this.formData.time
-        let img = ''
-        for (let i = 0; i < this.fileList.length; i++) {
-          img += (i === 0 ? '' : ',') + (this.fileList[i].response || this.fileList[i].url)
-        }
-        this.formData.imgUrl = img
-        this.$ajax.post(this.formData.id ? '/updateIncomeAndExpenses' : '/insertIncomeAndExpenses', {
-          ...this.formData,
-          state: 1,
-          money: this.totalMoney,
-          i: JSON.stringify(this.tableData2)
-        }).then((res) => {
-          if (res.data.code === 1) {
-            this.dialogFormVisible = false
-            this.$message.success(res.data.msg);
-            this.fetch(this.pagination.current)
+      submit(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            delete this.formData.time
+            let img = ''
+            for (let i = 0; i < this.fileList.length; i++) {
+              img += (i === 0 ? '' : ',') + (this.fileList[i].response || this.fileList[i].url)
+            }
+            this.formData.imgUrl = img
+            this.$ajax.post(this.formData.id ? '/updateIncomeAndExpenses' : '/insertIncomeAndExpenses', {
+              ...this.formData,
+              state: 1,
+              money: this.totalMoney,
+              i: JSON.stringify(this.tableData2)
+            }).then((res) => {
+              if (res.data.code === 1) {
+                this.dialogFormVisible = false
+                this.$message.success(res.data.msg);
+                this.fetch(this.pagination.current)
+              }
+            })
+            return false;
           }
-        })
+        });
       },
       fetch(page) {
         this.loading = true
@@ -226,9 +242,14 @@
           this.$message.info('已取消');
         });
       },
-      submitTable2() {
-        this.tableData2 = [this.formData2, ...this.tableData2]
-        this.dialogFormVisible2 = false
+      submitTable2(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.tableData2 = [this.formData2, ...this.tableData2]
+            this.dialogFormVisible2 = false
+            return false;
+          }
+        });
       },
       handleDelete2(row, index) {
         this.$ajax.post('/deleteIncomeAndExpensesProject', row)

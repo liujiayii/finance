@@ -97,7 +97,7 @@
       <div slot="footer" class="dialog-footer">
         <p>当前总计：{{totalMoney}}元</p>
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit('1')">保 存</el-button>
+        <el-button type="primary" @click="submit('4')">保 存</el-button>
         <el-button type="primary" @click="submit('2')">提 交</el-button>
       </div>
     </el-dialog>
@@ -124,7 +124,6 @@
       </el-table-column>
       <el-table-column prop="expenseAccountMoney" label="报销总金额"></el-table-column>
       <el-table-column prop="dateCreated" label="创建日期" :formatter="formatter"></el-table-column>
-      <el-table-column prop="allottedTime" label="还款期数"></el-table-column>
       <el-table-column prop="printNumber" label="已打印次数"></el-table-column>
       <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">

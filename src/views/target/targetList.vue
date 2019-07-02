@@ -3,7 +3,11 @@
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
       <el-form :model="formData" :inline="true" label-width="120px">
         <el-form-item label="新标标号">
-          <el-input type="number" v-model="formData.newBid" autocomplete="off" :disabled="Boolean(formData.id)"></el-input>
+          <el-input type="number" v-model="formData.newBid" autocomplete="off"
+                    :disabled="Boolean(formData.id)"></el-input>
+        </el-form-item>
+        <el-form-item label="续贷标号" v-if="formData.bidState===2">
+          <el-input type="number" v-model="formData.oldBid" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="标类型">
           <el-select v-model="formData.bidState">
@@ -66,7 +70,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetch()">查询</el-button>
-          <el-button type="primary" @click="searchForm={}">重置</el-button>
+          <el-button type="primary" @click="reset()">重置</el-button>
         </el-form-item>
       </el-form>
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">新建</el-button>
@@ -119,6 +123,10 @@
       }
     },
     methods: {
+      reset() {
+        this.searchForm = {}
+        this.fetch()
+      },
       formatter(row, column, cellValue, index) {
         return formatDate(new Date(cellValue), 'yyyy-MM-dd')
       },

@@ -108,7 +108,6 @@
       </el-table-column>
       <el-table-column prop="expenseAccountMoney" label="报销总金额"></el-table-column>
       <el-table-column prop="dateCreated" label="创建日期" :formatter="formatter"></el-table-column>
-      <el-table-column prop="printNumber" label="已打印次数"></el-table-column>
       <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">

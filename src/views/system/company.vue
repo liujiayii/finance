@@ -4,11 +4,11 @@
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">添加分公司信息</el-button>
     </div>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="分公司名称">
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px">
+        <el-form-item label="分公司名称" prop="companyName">
           <el-input v-model="formData.companyName" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="所属地区">
+        <el-form-item label="所属地区" prop="areaCode">
           <el-input v-model="formData.areaCode" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="备注">
@@ -17,7 +17,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="formData = false">取 消</el-button>
-        <el-button type="primary" @click="submit">保 存</el-button>
+        <el-button type="primary" @click="submit('ruleForm')">保 存</el-button>
       </div>
     </el-dialog>
     <el-table :data="tableData" style="width: 100%" :loading="loading">
@@ -49,7 +49,11 @@
         pagination: {},
         loading: false,
         dialogFormVisible: false,
-        formData: {}
+        formData: {},
+        rules: {
+          companyName: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          areaCode: [{required: true, message: '请输入内容', trigger: 'blur'}]
+        },
       }
     },
     methods: {
@@ -57,16 +61,21 @@
         this.dialogFormVisible = true
         this.formData = JSON.parse(JSON.stringify(row))
       },
-      submit() {
-        delete this.formData.createTime
-        this.$ajax.post(this.formData.id ? '/t_branch_company/upt_branch_company' : 't_branch_company/addt_branch_company', this.formData)
-          .then((res) => {
-            if (res.data.code === 1) {
-              this.dialogFormVisible = false
-              this.$message.success(res.data.msg);
-              this.fetch(this.pagination.current)
-            }
-          })
+      submit(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            delete this.formData.createTime
+            this.$ajax.post(this.formData.id ? '/t_branch_company/upt_branch_company' : 't_branch_company/addt_branch_company', this.formData)
+              .then((res) => {
+                if (res.data.code === 1) {
+                  this.dialogFormVisible = false
+                  this.$message.success(res.data.msg);
+                  this.fetch(this.pagination.current)
+                }
+              })
+            return false;
+          }
+        });
       },
       fetch(page) {
         this.loading = true

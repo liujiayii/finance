@@ -122,11 +122,12 @@
             <div class="right">
               <span class="vertical">财务主管</span>
               <span class="vertical">{{printData.auditName}}</span>
-              <span class="vertical">记&nbsp;&nbsp;&nbsp;&nbsp;帐</span>
-              <span class="vertical">{{printData.establishName}}</span>
+              <span class="vertical">记&nbsp;&nbsp;&nbsp;&nbsp;账</span>
+              <span class="vertical">{{printData.auditName}}</span>
               <span class="vertical">出&nbsp;&nbsp;&nbsp;&nbsp;纳</span>
+              <span class="vertical">审&nbsp;&nbsp;&nbsp;&nbsp;核</span>
               <span class="vertical">经&nbsp;&nbsp;&nbsp;&nbsp;办</span>
-              <span class="vertical"></span>
+              <span class="vertical">{{printData.establishName}}</span>
             </div>
           </div>
           <div class="RightVertical right">
@@ -298,6 +299,8 @@
           this.$prompt('请输入拒绝理由', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
+            inputPattern: /\S/,
+            inputErrorMessage: '请输入内容'
           }).then(({value}) => {
             this.$ajax.post('/updateIncomeAndExpensesState', {id: row.id, state, cause: value})
               .then((res) => {
@@ -360,7 +363,3 @@
     }
   }
 </script>
-
-<style scoped>
-  @import "../../assets/print.css";
-</style>

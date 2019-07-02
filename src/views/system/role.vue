@@ -4,8 +4,8 @@
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">添加</el-button>
     </div>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="名称">
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="备注">
@@ -14,7 +14,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit">保 存</el-button>
+        <el-button type="primary" @click="submit('ruleForm')">保 存</el-button>
       </div>
     </el-dialog>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogAccess">
@@ -66,7 +66,10 @@
         formData: {},
         dialogAccess: false,
         checkList: {},
-        accessList: []
+        accessList: [],
+        rules: {
+          name: [{required: true, message: '请输入内容', trigger: 'blur'}]
+        },
       }
     },
     methods: {
@@ -86,15 +89,20 @@
           })
         this.dialogAccess = true
       },
-      submit() {
-        this.$ajax.post(this.formData.id ? '/updateRole' : '/addRole', this.formData)
-          .then((res) => {
-            if (res.data.code === 1) {
-              this.dialogFormVisible = false
-              this.$message.success(res.data.msg);
-              this.fetch(this.pagination.current)
-            }
-          })
+      submit(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.$ajax.post(this.formData.id ? '/updateRole' : '/addRole', this.formData)
+              .then((res) => {
+                if (res.data.code === 1) {
+                  this.dialogFormVisible = false
+                  this.$message.success(res.data.msg);
+                  this.fetch(this.pagination.current)
+                }
+              })
+            return false;
+          }
+        });
       },
       submitAccess() {
         this.checkList.permissionId = this.checkList.permissionId.join(',')

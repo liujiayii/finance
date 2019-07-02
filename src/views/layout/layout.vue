@@ -67,7 +67,7 @@
           <router-view/>
         </transition>
       </el-main>
-      <el-footer>Copyright © 2019 由石家庄智莱云信息技术有限公司提供强力驱动</el-footer>
+      <el-footer>Copyright © 2019 由 石家庄智莱云信息技术有限公司 强力驱动</el-footer>
     </el-container>
   </el-container>
 </template>
@@ -104,7 +104,7 @@
             this.$ajax.post('/logout')
               .then((res) => {
                 if (res.data.code === 1) {
-                  sessionStorage.clear()
+                  window.sessionStorage.clear()
                   this.$router.push({path: "/login"})
                 }
               })

@@ -1,61 +1,41 @@
 <template>
-  <div>
-    <!--<div class="main">
-      <h3>财务系统</h3>
-      <el-card shadow="hover" class="card">
-        <el-form :model="form" :rules="rules" ref="ruleForm" label-width="100px">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="form.username" prefix-icon="el-icon-user-solid"></el-input>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" prefix-icon="el-icon-lock"></el-input>
-          </el-form-item>
-          <el-form-item label="验证码" prop="auth_code" class="code">
-            <img src="/showAuthCode" alt="" height="40" @click="getCode" id="code">
-            <el-input v-model="form.auth_code"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
-            <el-button @click="resetForm('ruleForm')">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>-->
-    <div class="page-login">
-      <div class="page-login--layer page-login--layer-area">
-        <ul class="circles">
-          <li v-for="n in 10" :key="n"></li>
-        </ul>
-      </div>
-      <div
-        class="page-login--layer page-login--layer-time"
-        flex="main:center cross:center">
-        {{time}}
-      </div>
-      <div class="page-login--layer">
-        <div class="page-login--content" flex="dir:top main:justify cross:stretch box:justify">
-          <div class="page-login--content-header">
-            <p class="page-login--content-header-motto">时间是一切财富中最宝贵的财富</p>
-          </div>
-          <div class="page-login--content-main" flex="dir:top main:center cross:center">
-            <div class="main">
-              <el-form :model="form" :rules="rules" ref="ruleForm" label-width="100px">
-                <el-form-item label="用户名" prop="username">
-                  <el-input v-model="form.username" prefix-icon="el-icon-user-solid"></el-input>
-                </el-form-item>
-                <el-form-item label="密码" prop="password">
-                  <el-input type="password" v-model="form.password" prefix-icon="el-icon-lock"></el-input>
-                </el-form-item>
-                <el-form-item label="验证码" prop="auth_code" class="code">
-                  <img src="/showAuthCode" alt="" height="40" @click="getCode" id="code">
-                  <el-input v-model="form.auth_code"></el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
-                  <el-button @click="resetForm('ruleForm')">重置</el-button>
-                </el-form-item>
-              </el-form>
-            </div>
+  <div class="page-login">
+    <div class="page-login--layer page-login--layer-area">
+      <ul class="circles">
+        <li v-for="n in 10" :key="n"></li>
+      </ul>
+    </div>
+    <div
+      class="page-login--layer page-login--layer-time"
+      flex="main:center cross:center">
+      {{time}}
+    </div>
+    <div class="page-login--layer">
+      <div class="page-login--content" flex="dir:top main:justify cross:stretch box:justify">
+        <div class="page-login--content-header">
+          <p class="page-login--content-header-motto">时间是一切财富中最宝贵的财富</p>
+        </div>
+        <div class="page-login--content-main" flex="dir:top main:center cross:center">
+          <div class="login-main">
+            <el-form :model="form" :rules="rules" ref="ruleForm" label-width="100px">
+              <el-form-item label="用户名" prop="username">
+                <el-input v-model="form.username" prefix-icon="el-icon-user-solid"></el-input>
+              </el-form-item>
+              <el-form-item label="密码" prop="password">
+                <el-input type="password" v-model="form.password" prefix-icon="el-icon-lock"></el-input>
+              </el-form-item>
+              <el-form-item label="验证码" prop="auth_code" class="code">
+                <el-input v-model="form.auth_code" :maxlength="2">
+                  <template slot="prefix">
+                    <img src="/showAuthCode" alt="" height="40" @click="getCode" id="code">
+                  </template>
+                </el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+              </el-form-item>
+            </el-form>
           </div>
         </div>
       </div>
@@ -118,22 +98,22 @@
       }
     },
     mounted() {
+      window.sessionStorage.clear()
       let timer = setInterval(() => {
         this.time = formatDate(new Date(), 'hh:mm:ss')
       }, 1000)
     }
   }
 </script>
-<style scoped lang="scss">
-  .main {
-    width: 300px;
-
+<style lang="scss">
+  .login-main {
     .code {
-      .el-form-item__content {
-        .el-input {
-          width: 100px;
-          top: -14px;
-        }
+      .el-input__inner {
+        padding-left: 120px !important;
+      }
+
+      .el-input__prefix {
+        left: 0 !important;
       }
 
       img {
@@ -204,28 +184,6 @@
       // 卡片
       .el-card {
         margin-bottom: 15px;
-      }
-
-      // 登录按钮
-      .button-login {
-        width: 100%;
-      }
-
-      // 输入框左边的图表区域缩窄
-      .el-input-group__prepend {
-        padding: 0px 14px;
-      }
-
-      .login-code {
-        height: 40px - 2px;
-        display: block;
-        margin: 0px -20px;
-        border-top-right-radius: 2px;
-        border-bottom-right-radius: 2px;
-      }
-
-      .page-login--quick {
-        width: 100%;
       }
     }
 
