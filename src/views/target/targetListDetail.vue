@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="closeDialog" fullscreen>
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="报销单类型">
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px">
+        <el-form-item label="报销单类型" prop="expenseAccountType">
           <el-select v-model="formData.expenseAccountType" :disabled="Boolean(formData.id)">
             <el-option label="新标续贷报销单" :value="1"></el-option>
             <el-option label="本息报销单" :value="2"></el-option>
@@ -10,7 +10,8 @@
         </el-form-item>
         <template v-if="formData.expenseAccountType===2">
           <el-form-item label="还款期数">
-            <el-input type="number" v-model="formData.allottedTime" autocomplete="off"><span slot="suffix">个月</span></el-input>
+            <el-input type="number" v-model="formData.allottedTime" autocomplete="off"><span slot="suffix">个月</span>
+            </el-input>
           </el-form-item>
           <el-form-item label="类别">
             <el-select v-model="formData.interestType">
@@ -28,7 +29,8 @@
         </el-form-item>
         <template v-if="formData.expenseAccountType===1">
           <el-form-item v-if="!formData.id||formData['平台服务费+利息']" label="平台服务费+利息">
-            <el-input type="number" v-model="formData['平台服务费+利息']" autocomplete="off"><span slot="suffix">元</span></el-input>
+            <el-input type="number" v-model="formData['平台服务费+利息']" autocomplete="off"><span slot="suffix">元</span>
+            </el-input>
           </el-form-item>
           <el-form-item v-if="!formData.id||formData['点位费']" label="点位费">
             <el-input type="number" v-model="formData['点位费']" autocomplete="off"><span slot="suffix">元</span></el-input>
@@ -37,7 +39,8 @@
             <el-input type="number" v-model="formData['房产']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
           <el-form-item v-if="!formData.id||formData['档案管理']" label="档案管理">
-            <el-input type="number" v-model="formData['档案管理']" autocomplete="off"><span slot="suffix">元</span></el-input>
+            <el-input type="number" v-model="formData['档案管理']" autocomplete="off"><span slot="suffix">元</span>
+            </el-input>
           </el-form-item>
           <el-form-item v-if="!formData.id||formData['垫资费']" label="垫资费">
             <el-input type="number" v-model="formData['垫资费']" autocomplete="off"><span slot="suffix">元</span></el-input>
@@ -49,7 +52,8 @@
             <el-input type="number" v-model="formData['实地费']" autocomplete="off"><span slot="suffix">元</span></el-input>
           </el-form-item>
           <el-form-item v-if="!formData.id||formData['GPS安装']" label="GPS安装">
-            <el-input type="number" v-model="formData['GPS安装']" autocomplete="off"><span slot="suffix">元</span></el-input>
+            <el-input type="number" v-model="formData['GPS安装']" autocomplete="off"><span slot="suffix">元</span>
+            </el-input>
           </el-form-item>
           <el-form-item v-if="!formData.id||formData['停车费']" label="停车费">
             <el-input type="number" v-model="formData['停车费']" autocomplete="off"><span slot="suffix">元</span></el-input>
@@ -97,8 +101,10 @@
       <div slot="footer" class="dialog-footer">
         <p>当前总计：{{totalMoney}}元</p>
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit('1')">保 存</el-button>
-        <el-button type="primary" @click="submit('2')">提 交</el-button>
+        <template v-if="!(formData.expenseAccountState===3)">
+          <el-button type="primary" @click="submit('1','ruleForm')">保存至草稿箱</el-button>
+          <el-button type="primary" @click="submit('2','ruleForm')">提 交</el-button>
+        </template>
       </div>
     </el-dialog>
     <div class="top">
@@ -121,7 +127,9 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
-          <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          <el-button v-if="!(scope.row.expenseAccountState===3)" @click="handleDelete(scope.row)" type="text"
+                     size="small">删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -144,7 +152,10 @@
         companyList: [],
         dialogImageUrl: '',
         dialogImageVisible: false,
-        fileList: []
+        fileList: [],
+        rules: {
+          expenseAccountType: [{required: true, message: '请输入内容', trigger: 'blur'}],
+        },
       }
     },
     methods: {
@@ -190,34 +201,39 @@
           this.$message.info('已取消');
         });
       },
-      submit(expenseAccountState) {
-        delete this.formData.dateCreated
-        delete this.formData.lastModifiedTime
-        let newArr = []
-        for (let i in this.formData) {
-          if (!(/^[a-zA-Z]*$/.test(i))) {
-            newArr.push({name: i, money: this.formData[i]})
-            delete this.formData[i]
+      submit(expenseAccountState, formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            delete this.formData.dateCreated
+            delete this.formData.lastModifiedTime
+            let newArr = []
+            for (let i in this.formData) {
+              if (!(/^[a-zA-Z]*$/.test(i))) {
+                newArr.push({name: i, money: this.formData[i]})
+                delete this.formData[i]
+              }
+            }
+            let img = ''
+            for (let i = 0; i < this.fileList.length; i++) {
+              img += (i === 0 ? '' : ',') + (this.fileList[i].response || this.fileList[i].url)
+            }
+            this.formData.imageUrl = img
+            console.log(newArr)
+            this.$ajax.post(this.formData.id ? '/updateExpenseAccount' : '/insertExpenseAccount', {
+              superscriptId: this.$route.query.id,
+              expenseAccountState,
+              ...this.formData,
+              ExpenseProjectParticulars: JSON.stringify(newArr)
+            }).then((res) => {
+              if (res.data.code === 1) {
+                this.dialogFormVisible = false
+                this.$message.success(res.data.msg);
+                this.fetch(this.pagination.current)
+              }
+            })
+            return false;
           }
-        }
-        let img = ''
-        for (let i = 0; i < this.fileList.length; i++) {
-          img += (i === 0 ? '' : ',') + (this.fileList[i].response || this.fileList[i].url)
-        }
-        this.formData.imageUrl = img
-        console.log(newArr)
-        this.$ajax.post(this.formData.id ? '/updateExpenseAccount' : '/insertExpenseAccount', {
-          superscriptId: this.$route.query.id,
-          expenseAccountState,
-          ...this.formData,
-          ExpenseProjectParticulars: JSON.stringify(newArr)
-        }).then((res) => {
-          if (res.data.code === 1) {
-            this.dialogFormVisible = false
-            this.$message.success(res.data.msg);
-            this.fetch(this.pagination.current)
-          }
-        })
+        });
       },
       fetch(page) {
         this.loading = true
@@ -267,7 +283,7 @@
         let total = 0
         for (let i in this.formData) {
           if (!(/^[a-zA-Z]*$/.test(i))) {
-            total += this.formData[i] * 1
+            total = Math.floor(this.formData[i] * 100 + total * 100) / 100
           }
         }
         return total

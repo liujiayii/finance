@@ -1,33 +1,33 @@
 <template>
   <div>
     <el-dialog :modal-append-to-body="false" :visible.sync="dialogFormVisible" @closed="formData={}">
-      <el-form :model="formData" :inline="true" label-width="120px">
-        <el-form-item label="新标标号">
-          <el-input type="number" v-model="formData.newBid" autocomplete="off"
+      <el-form :model="formData" :rules="rules" ref="ruleForm" :inline="true" label-width="120px">
+        <el-form-item label="新标标号" prop="newBid">
+          <el-input type="text" v-model="formData.newBid" autocomplete="off"
                     :disabled="Boolean(formData.id)"></el-input>
         </el-form-item>
         <el-form-item label="续贷标号" v-if="formData.bidState===2">
-          <el-input type="number" v-model="formData.oldBid" autocomplete="off"></el-input>
+          <el-input type="text" v-model="formData.oldBid" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="标类型">
+        <el-form-item label="标类型" prop="bidState">
           <el-select v-model="formData.bidState">
             <el-option label="新标" :value="1"></el-option>
             <el-option label="续贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="业务类型">
+        <el-form-item label="业务类型" prop="businessType">
           <el-select v-model="formData.businessType">
             <el-option label="惠车贷" :value="1"></el-option>
             <el-option label="惠房贷" :value="2"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="投标人姓名">
+        <el-form-item label="投标人姓名" prop="name">
           <el-input v-model="formData.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="投标金额">
+        <el-form-item label="投标金额" prop="money">
           <el-input type="number" v-model="formData.money" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="贷款期限">
+        <el-form-item label="贷款期限" prop="lengthOfMaturity">
           <el-input type="number" v-model="formData.lengthOfMaturity" autocomplete="off">
             <span slot="suffix">个月</span>
           </el-input>
@@ -38,7 +38,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submit">确 定</el-button>
+        <el-button type="primary" @click="submit('ruleForm')">确 定</el-button>
       </div>
     </el-dialog>
     <div class="top">
@@ -93,8 +93,10 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-          <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          <template v-if="!(roles==='风控专员')">
+            <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -119,7 +121,16 @@
         loading: false,
         searchForm: {},
         dialogFormVisible: false,
-        formData: {}
+        formData: {},
+        rules: {
+          newBid: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          bidState: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          businessType: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          name: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          lengthOfMaturity: [{required: true, message: '请输入内容', trigger: 'blur'}],
+          money: [{required: true, message: '请输入内容', trigger: 'blur'}]
+        },
+        roles: ''
       }
     },
     methods: {
@@ -141,17 +152,22 @@
         this.searchForm.startTime = formatDate(e[0], 'yyyy-MM-dd')
         this.searchForm.endTime = formatDate(e[1], 'yyyy-MM-dd')
       },
-      submit() {
-        delete this.formData.dateCreated
-        delete this.formData.bidEndTime
-        this.$ajax.post(this.formData.id ? '/updateSuperscript' : '/insertSuperscript', this.formData)
-          .then((res) => {
-            if (res.data.code === 1) {
-              this.dialogFormVisible = false
-              this.$message.success(res.data.msg);
-              this.fetch(this.pagination.current)
-            }
-          })
+      submit(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            delete this.formData.dateCreated
+            delete this.formData.bidEndTime
+            this.$ajax.post(this.formData.id ? '/updateSuperscript' : '/insertSuperscript', this.formData)
+              .then((res) => {
+                if (res.data.code === 1) {
+                  this.dialogFormVisible = false
+                  this.$message.success(res.data.msg);
+                  this.fetch(this.pagination.current)
+                }
+              })
+            return false;
+          }
+        });
       },
       fetch(page) {
         this.loading = true
@@ -164,6 +180,7 @@
               this.loading = false;
               this.tableData = res.data.data;
               this.pagination = pagination;
+              this.roles = res.data.roleName
             }
           })
       },

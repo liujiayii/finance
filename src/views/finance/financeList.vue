@@ -92,7 +92,7 @@
       <el-button type="primary" size="small" round @click="dialogFormVisible=true">新建收支单</el-button>
     </div>
     <el-table :data="tableData" style="width: 100%" :loading="loading">
-      <el-table-column prop="id" label="上标id"></el-table-column>
+      <el-table-column prop="id" label="ID"></el-table-column>
       <el-table-column prop="companyId" label="分公司"></el-table-column>
       <el-table-column prop="name" label="报销人姓名"></el-table-column>
       <el-table-column prop="money" label="总金额"></el-table-column>
@@ -252,24 +252,16 @@
         });
       },
       handleDelete2(row, index) {
-        this.$ajax.post('/deleteIncomeAndExpensesProject', row)
-          .then((res) => {
-            if (res.data.code === 1) {
-              this.$message.success(res.data.msg);
-              this.tableData2.splice(index, 1)
-            }
-          })
+        this.tableData2.splice(index, 1)
       },
       handleRemove(file, fileList) {
         this.fileList = fileList
-        console.log(file, fileList);
       },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url;
         this.dialogImageVisible = true;
       },
       handleSuccess(response, file, fileList) {
-        console.log(fileList)
         this.fileList = fileList
       }
     },

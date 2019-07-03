@@ -21,7 +21,7 @@
       </div>
     </el-dialog>
     <el-table :data="tableData" style="width: 100%" :loading="loading">
-      <el-table-column prop="areaCode" label="地区ID"></el-table-column>
+      <el-table-column prop="areaCode" label="地区"></el-table-column>
       <el-table-column prop="companyName" label="公司名称"></el-table-column>
       <el-table-column prop="remark" label="备注"></el-table-column>
       <el-table-column label="操作">

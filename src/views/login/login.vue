@@ -98,6 +98,7 @@
       }
     },
     mounted() {
+      this.getCode()
       window.sessionStorage.clear()
       let timer = setInterval(() => {
         this.time = formatDate(new Date(), 'hh:mm:ss')

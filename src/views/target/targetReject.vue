@@ -106,7 +106,7 @@
         <el-table-column prop="cause" label="驳回原因"></el-table-column>
         <el-table-column prop="time" label="驳回的时间" :formatter="formatter"></el-table-column>
         <el-table-column prop="messageState" label="消息状态">
-          <template slot-scope="scope"><span>{{ scope.row.messageState===1?'未读':'已读'}}</span></template>
+          <template slot-scope="scope"><span>{{ scope.row.messageState===1?'未修改':'已修改'}}</span></template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
@@ -297,7 +297,7 @@
         let total = 0
         for (let i in this.formData) {
           if (!(/^[a-zA-Z]*$/.test(i))) {
-            total += this.formData[i] * 1
+            total = Math.floor(this.formData[i] * 100 + total * 100) / 100
           }
         }
         return total

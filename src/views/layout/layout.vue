@@ -35,10 +35,6 @@
           <div class="point" @click="fullScreen">
             <i class="el-icon-full-screen"></i>
           </div>
-          <div class="point">
-            <el-link href="https://github.com/liujiayii/finance" target="_blank" :underline="false"><i
-              class="el-icon-question"></i></el-link>
-          </div>
           <el-dropdown @command="lang">
             <span class="el-dropdown-link">{{ $t(`header.HeadMenu.lang`) }}</span>
             <el-dropdown-menu slot="dropdown">

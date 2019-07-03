@@ -268,7 +268,7 @@
         let total = 0
         for (let i in this.formData) {
           if (!(/^[a-zA-Z]*$/.test(i))) {
-            total += this.formData[i] * 1
+            total = Math.floor(this.formData[i] * 100 + total * 100) / 100
           }
         }
         return total
