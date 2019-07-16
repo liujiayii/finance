@@ -50,7 +50,7 @@
           <el-input v-model="formData.phone" autocomplete="off" :maxlength="11"></el-input>
         </el-form-item>
         <el-form-item label="年龄" prop="age">
-          <el-input v-model="formData.age" autocomplete="off"></el-input>
+          <el-input v-model="formData.age" autocomplete="off" maxLength="2"></el-input>
         </el-form-item>
         <el-form-item label="性别" prop="sex">
           <el-select v-model="formData.sex">

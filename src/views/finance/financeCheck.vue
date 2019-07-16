@@ -89,13 +89,11 @@
             </div>
             <table class="reimbursement-table" cellpadding="0" cellspacing="0" width="890px;" border="1">
               <tr>
-                <td>报销项目</td>
-                <td colspan="4">摘要</td>
+                <td>摘要</td>
                 <td colspan="3"><b>金额</b></td>
               </tr>
               <tr v-for="item of printData.list" :key="item.id">
                 <td>{{item.name}}</td>
-                <td colspan="4">{{item.message}}</td>
                 <td colspan="3">{{item.money}}</td>
               </tr>
               <tr>
@@ -105,12 +103,9 @@
                     <div class="alignment1">人民币</div>
                   </div>
                   <div class="vertical left">︵大写︶</div>
-                  <div class="total left">
+                  <div class="total" style="font-size: 18px">
                     {{printData.moneys}}
                   </div>
-                </td>
-                <td colspan="4">
-                  <b class="ls4"></b>
                 </td>
                 <td colspan="3" style="font-weight: bold;">
                   ￥<u>{{printData.money}}</u>
