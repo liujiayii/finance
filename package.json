@@ -16,7 +16,7 @@
     "screenfull": "^5.0.2",
     "vue": "^2.6.10",
     "vue-i18n": "^8.18.2",
-    "vue-router": "^3.0.3"
+    "vue-router": "^3.5.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.4.4",
